@@ -88,6 +88,8 @@ add_library(onnx_importer SHARED
         op/depth_to_space.hpp
         op/dequantize_linear.cpp
         op/dequantize_linear.hpp
+        op/detection_output.cpp
+        op/detection_output.hpp
         op/div.hpp
         op/dropout.hpp
         op/elu.cpp
@@ -166,6 +168,10 @@ add_library(onnx_importer SHARED
         op/pow.hpp
         op/prelu.cpp
         op/prelu.hpp
+        op/prior_box.cpp
+        op/prior_box.hpp
+        op/prior_box_clustered.cpp
+        op/prior_box_clustered.hpp
         op/qlinear_matmul.cpp
         op/qlinear_matmul.hpp
         op/quant_conv.cpp

@@ -49,6 +49,7 @@
 #include "op/cum_sum.hpp"
 #include "op/depth_to_space.hpp"
 #include "op/dequantize_linear.hpp"
+#include "op/detection_output.hpp"
 #include "op/div.hpp"
 #include "op/dropout.hpp"
 #include "op/elu.hpp"
@@ -97,6 +98,8 @@
 #include "op/pad.hpp"
 #include "op/pow.hpp"
 #include "op/prelu.hpp"
+#include "op/prior_box.hpp"
+#include "op/prior_box_clustered.hpp"
 #include "op/qlinear_matmul.hpp"
 #include "op/quant_conv.hpp"
 #include "op/quantize_linear.hpp"
@@ -278,6 +281,7 @@ namespace ngraph
             REGISTER_OPERATOR("CumSum", 1, cum_sum);
             REGISTER_OPERATOR("DepthToSpace", 1, depth_to_space);
             REGISTER_OPERATOR("DequantizeLinear", 1, dequantize_linear);
+            REGISTER_OPERATOR("DetectionOutput", 1, DetectionOutput);
             REGISTER_OPERATOR("Div", 1, div);
             REGISTER_OPERATOR("Div", 7, div);
             REGISTER_OPERATOR("Dropout", 1, dropout);
@@ -333,6 +337,8 @@ namespace ngraph
             REGISTER_OPERATOR("Pad", 11, pad);
             REGISTER_OPERATOR("Pow", 1, pow);
             REGISTER_OPERATOR("PRelu", 1, prelu);
+            REGISTER_OPERATOR("PriorBox", 1, PriorBox);
+            REGISTER_OPERATOR("PriorBoxClustered", 1, PriorBoxClustered);
             REGISTER_OPERATOR("QLinearConv", 1, quant_conv);
             REGISTER_OPERATOR("QLinearMatMul", 1, qlinear_matmul);
             REGISTER_OPERATOR("QuantizeLinear", 1, quantize_linear);
