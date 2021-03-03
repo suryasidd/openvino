@@ -26,7 +26,7 @@ class ExecutableNetworkInternal;
 
 /**
  * @brief An optimal implementation of IInferRequestInternal interface to avoid duplication in all plugins
- * This base class is recommended to be used as a base class for plugin synchronous inference request implementation. 
+ * This base class is recommended to be used as a base class for plugin synchronous inference request implementation.
  * @ingroup ie_dev_api_infer_request_api
  */
 class InferRequestInternal : virtual public IInferRequestInternal {
@@ -48,7 +48,7 @@ public:
 
     /**
      * @brief The minimal infer function to be implemented by plugins. It infers specified input(s) in synchronous mode
-     * @note 
+     * @note
      *  * This method is used in InferRequestInternal::Infer, which calls the common code first and after uses this
      * plugin dependent implementation.
      *  * Blocks all method of IInferRequest while request is ongoing (running or waiting in queue)
@@ -106,7 +106,9 @@ public:
                 // during pre-processing
                 _preProcData[name]->setRoiBlob(data);
             } else {
-                size_t inputSize = details::product(foundInput->getTensorDesc().getDims());
+                size_t inputSize = foundInput->getTensorDesc().getLayout() != InferenceEngine::Layout::SCALAR
+                    ? InferenceEngine::details::product(foundInput->getTensorDesc().getDims())
+                    : 1;
                 if (dataSize != inputSize) {
                     THROW_IE_EXCEPTION << "Input blob size is not equal network input size (" << dataSize
                                        << "!=" << inputSize << ").";
@@ -118,7 +120,9 @@ public:
                 THROW_IE_EXCEPTION << NOT_IMPLEMENTED_str
                                    << "cannot set compound blob: supported only for input pre-processing";
             }
-            size_t outputSize = details::product(foundOutput->getDims());
+            size_t outputSize = foundOutput->getTensorDesc().getLayout() != InferenceEngine::Layout::SCALAR
+                  ? InferenceEngine::details::product(foundOutput->getDims())
+                  : 1;
             if (dataSize != outputSize) {
                 THROW_IE_EXCEPTION << "Output blob size is not equal network output size (" << dataSize
                                    << "!=" << outputSize << ").";
@@ -300,7 +304,7 @@ protected:
      * @brief      Check that @p blob is valid. Throws an exception if it's not.
      *
      * @param[in]  blob     The blob to check
-     * @param[in]  name     The name of input or output depending of if the @p blob is input or output 
+     * @param[in]  name     The name of input or output depending of if the @p blob is input or output
      * @param[in]  isInput  Indicates if @p is input
      * @param[in]  refDims  The reference dims, empty if not specified
      */
