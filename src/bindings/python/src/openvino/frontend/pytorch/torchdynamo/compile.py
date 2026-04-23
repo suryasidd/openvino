@@ -59,6 +59,7 @@ def openvino_compile_cached_model(cached_model_path, options, *example_inputs):
         torch.float32: Type.f32,
         torch.float64: Type.f64,
         torch.float16: Type.f16,
+        torch.bfloat16: Type.bf16,
         torch.int64: Type.i64,
         torch.int32: Type.i32,
         torch.uint8: Type.u8,
@@ -99,7 +100,7 @@ def openvino_compile(gm: GraphModule, *args, model_hash_str: str = None, options
         input_shapes = []
         input_types = []
         for input_data in args:
-            if isinstance(input_data, int):
+            if isinstance(input_data, (int, torch.SymInt)):
                 input_types.append(torch.int64)
                 input_shapes.append(torch.Size([1]))
             else:
@@ -119,6 +120,7 @@ def openvino_compile(gm: GraphModule, *args, model_hash_str: str = None, options
         torch.float32: Type.f32,
         torch.float64: Type.f64,
         torch.float16: Type.f16,
+        torch.bfloat16: Type.bf16,
         torch.int64: Type.i64,
         torch.int32: Type.i32,
         torch.uint8: Type.u8,
@@ -127,7 +129,7 @@ def openvino_compile(gm: GraphModule, *args, model_hash_str: str = None, options
     }
 
     for idx, input_data in enumerate(args):
-        if isinstance(input_data, int):
+        if isinstance(input_data, (int, torch.SymInt)):
             om.inputs[idx].get_node().set_element_type(dtype_mapping[torch.int64])
             om.inputs[idx].get_node().set_partial_shape(PartialShape(list(torch.Size([1]))))
         else:

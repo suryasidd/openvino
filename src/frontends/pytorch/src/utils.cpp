@@ -654,7 +654,7 @@ std::deque<Output<Node>> get_list_as_outputs(const Output<Node>& start, bool uns
     // Fast path: SequenceMark with get_sequence() handles SequenceInsert chains internally
     if (auto seq_mark = ov::as_type_ptr<SequenceMark>(current_output.get_node_shared_ptr())) {
         for (auto& elem : seq_mark->get_sequence()) {
-            if (unsqueeze_for_concat) {
+            if (unsqueeze_for_concat && !elem.get_partial_shape().is_dynamic()) {
                 elem = std::make_shared<v0::Unsqueeze>(elem, zero);
             }
             res.push_back(elem);
@@ -673,7 +673,7 @@ std::deque<Output<Node>> get_list_as_outputs(const Output<Node>& start, bool uns
         const auto& op_type = op_type_it->second;
         if (op_type == "aten::append") {
             auto elem = fw_node->get_input_source_output(1);
-            if (unsqueeze_for_concat) {
+            if (unsqueeze_for_concat && !elem.get_partial_shape().is_dynamic()) {
                 elem = std::make_shared<v0::Unsqueeze>(elem, zero);
             }
             res.push_front(elem);
@@ -693,7 +693,7 @@ std::deque<Output<Node>> get_list_as_outputs(const Output<Node>& start, bool uns
         const auto& inputs = seq_mark->inputs();
         for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
             auto elem = it->get_source_output();
-            if (unsqueeze_for_concat) {
+            if (unsqueeze_for_concat && !elem.get_partial_shape().is_dynamic()) {
                 elem = std::make_shared<v0::Unsqueeze>(elem, zero);
             }
             res.push_front(elem);

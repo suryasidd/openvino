@@ -277,6 +277,7 @@ class OperatorSupport(OpSupport):
             "torch.ops.aten.zeros.default": None,
             "torch.ops.aten.zeros_like.default": None,
             "torch.ops.scalar_tensor.default": None,
+            "torch.ops.sym_size.int": None,
             "torch.ops.torchvision.deform_conv2d.default": None,
             "torch.ops.torchvision.roi_align.default": None,
             "torch.ops.quantized_decomposed.quantize_per_tensor.default": None,
