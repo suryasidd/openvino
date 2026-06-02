@@ -20,7 +20,7 @@ from openvino.frontend import FrontEndManager
 from openvino.frontend.pytorch.fx_decoder import TorchFXPythonDecoder
 from openvino.frontend.pytorch.torchdynamo.partition import Partitioner
 from openvino.frontend.pytorch.torchdynamo.compile import openvino_compile
-from openvino import Core, Type, PartialShape
+from openvino import Core, Type, PartialShape, Tensor
 from openvino.frontend.pytorch.torchdynamo.backend_utils import _get_cache_dir, _get_device, _get_aot_autograd
 
 from typing import Optional, Any
@@ -68,8 +68,17 @@ def execute(
 import numpy as np
 
 
+def _torch_to_ov_tensor(t: torch.Tensor) -> Tensor:
+    #Wrap a torch CPU tensor as an ov.Tensor without copying
+    if t.device.type != "cpu":
+        t = t.cpu()
+    if not t.is_contiguous():
+        t = t.contiguous()
+    return Tensor(t.numpy(), shared_memory=True)
+
+
 def execute_cached(compiled_model, *args):
-    ov_inputs = [a.detach().cpu().numpy() for a in args]
+    ov_inputs = [_torch_to_ov_tensor(a) for a in args]
     ov_inputs.reverse()
     res = compiled_model(ov_inputs)
     result = [torch.from_numpy(res[out]) for out in compiled_model.outputs]
@@ -112,7 +121,10 @@ def openvino_execute(
     flat_args, _ = tree_flatten(args)
     ov_inputs = []
     for arg in flat_args:
-        ov_inputs.append((arg if isinstance(arg, int) else arg.detach().cpu().numpy()))
+        if isinstance(arg, int):
+            ov_inputs.append(arg)
+        else:
+            ov_inputs.append(_torch_to_ov_tensor(arg))
 
     res = req.infer(ov_inputs, share_inputs=True, share_outputs=True)
 
