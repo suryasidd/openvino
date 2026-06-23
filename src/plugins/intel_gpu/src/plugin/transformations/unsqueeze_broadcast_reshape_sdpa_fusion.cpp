@@ -186,6 +186,11 @@ UnsqueezeBroadcastReshapeSDPAFusion::UnsqueezeBroadcastReshapeSDPAFusion() {
                 // Remove the broadcast axis
                 shape_vec.erase(shape_vec.begin() + broadcast_axis);
 
+                // Only fuse when the result is 4D, as the fused SDPA expects.
+                if (shape_vec.size() != 4) {
+                    return std::nullopt;
+                }
+
                 auto new_shape_const = ov::op::v0::Constant::create(ov::element::i64, ov::Shape{4}, shape_vec);
                 auto new_reshape = std::make_shared<ov::op::v1::Reshape>(input, new_shape_const, orig_special_zero);
                 new_reshape->set_friendly_name(input.get_node()->get_friendly_name() + "_dynamic_4d_reshape");
@@ -206,6 +211,11 @@ UnsqueezeBroadcastReshapeSDPAFusion::UnsqueezeBroadcastReshapeSDPAFusion() {
 
                 // Remove the broadcast axis
                 shape_vec.erase(shape_vec.begin() + broadcast_axis);
+
+                // Only fuse when the result is 4D, as the fused SDPA expects.
+                if (shape_vec.size() != 4) {
+                    return std::nullopt;
+                }
 
                 auto new_shape_const = ov::op::v0::Constant::create(ov::element::i64, ov::Shape{4}, shape_vec);
                 auto new_reshape = std::make_shared<ov::op::v1::Reshape>(input, new_shape_const, true);
