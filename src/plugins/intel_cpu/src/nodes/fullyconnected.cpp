@@ -53,7 +53,7 @@
 #include "utils/general_utils.h"
 #if defined(OV_CPU_WITH_KLEIDIAI)
 #    include "openvino/core/shape.hpp"
-#    include "utils/precision_support.h"
+#    include "utils/arm_isa_support.h"
 #endif
 
 using namespace dnnl;
@@ -189,14 +189,17 @@ bool FullyConnected::isSupportedCompressedOperation([[maybe_unused]] const std::
         if (!isSupportedOperation(op, errorMessage)) {
             return false;
         }
-        if (!hasIntDotProductSupport()) {
+        if (!hasArmISASupport(ArmISA::DOTPROD)) {
             return false;
         }
         if (config.fcDynamicQuantizationGroupSize != UINT64_MAX) {
             return false;
         }
 
-        if (op->get_input_size() > WEIGHT_SCALES && shape_size(op->input(WEIGHT_SCALES).get_shape()) != OC) {
+        bool isNotGroupWise = (IC % G != 0 || IC / G < 4 || OC == 1 || (IC / G) % 32 != 0);
+        bool isNotChannelWise =
+            (op->get_input_size() > WEIGHT_SCALES && shape_size(op->input(WEIGHT_SCALES).get_shape()) != OC);
+        if (isNotChannelWise && isNotGroupWise) {
             return false;
         }
 
@@ -573,6 +576,8 @@ void FullyConnected::initSupportedPrimitiveDescriptors() {
                                                         context->getConfig().fcSparseWeiDecompressionRate);
     attrs.dynamicQuantizationGroupSize = context->getConfig().fcDynamicQuantizationGroupSize;
     attrs.modelType = context->getConfig().modelType;
+
+    attrs.dqScales = getDQScales();
 
     attrs.postOps = getPostOps(fusedWith);
 

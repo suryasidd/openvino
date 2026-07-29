@@ -70,6 +70,15 @@ FullyConnectedHorizontalFusion::FullyConnectedHorizontalFusion(bool fuse_mlp_swi
             const auto& fc_user = ov::as_type_ptr<op::FullyConnectedCompressed>(u);
             if (!fc_user)
                 continue;
+
+            // Skip horizontal fusion when the weight is not a constant. The fused-weight Concat
+            // created during fusion relies on constant-folding at compile time; with a non-constant
+            // weight (e.g. weights provided as runtime inputs) it cannot fold, survives to program
+            // build, and may hit formats/types without a Concat implementation. Even when a Concat
+            // impl exists, concatenating weights on every inference is pure overhead with no benefit.
+            if (!is_constant(fc_user->get_input_node_shared_ptr(1)))
+                return false;
+
             auto num_inputs = fc_user->inputs().size();
             if (num_inputs >= 5)
                 nodes_with_zp++;
@@ -231,7 +240,7 @@ FullyConnectedHorizontalFusion::FullyConnectedHorizontalFusion(bool fuse_mlp_swi
         }
 
         std::shared_ptr<ov::Node> fused_zps;
-        if (zp_nodes.size() > 0) {
+        if (!zp_nodes.empty()) {
             // scalar zp
             auto zp_shape = zp_nodes[0]->get_output_shape(0);
             bool is_scalar = (ov::shape_size(zp_nodes[0]->get_output_shape(0)) == 1);
